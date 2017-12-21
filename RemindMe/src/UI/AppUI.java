@@ -1,13 +1,23 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+* To change this license header, choose License Headers in Project Properties.
+* To change this template file, choose Tools | Templates
+* and open the template in the editor.
  */
 package UI;
 
+import com.sun.xml.internal.ws.util.StringUtils;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.Timer;
@@ -21,39 +31,53 @@ public class AppUI extends javax.swing.JFrame {
     /**
      * Creates new form AppUI
      */
-    static int min,sec,minTemp,secTemp;
+    static int min, sec, minTemp, secTemp;
     Timer timer;
-    boolean flag=true;
+    boolean flag = true;
     boolean IsStopped = false;
     boolean IsReset = false;
-    String taskCompleteMsg="";
-    
+    String taskCompleteMsg = "";
+    String taskMsg = "";
+
+    Model model;
+
     public AppUI() {
         initComponents();
-        
-        //Fill min,sec
-        for (int i = 0; i <=59; i++) {
-            if(i<10)
-            {
-                cboxMin.addItem("0"+i);
+
+        this.model = new Model();
+
+        if (new File("tasks.ser").exists()) {
+            try {
+                FileInputStream fileIn = new FileInputStream("tasks.ser");
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                model = (Model) in.readObject();
+                in.close();
+                fileIn.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+                return;
+            } catch (ClassNotFoundException c) {
+                c.printStackTrace();
+                return;
             }
-            else
-            {
+        }
+
+        //Fill min,sec
+        for (int i = 0; i <= 59; i++) {
+            if (i < 10) {
+                cboxMin.addItem("0" + i);
+            } else {
                 cboxMin.addItem(Integer.toString(i));
             }
         }
-        for (int i = 0; i <= 60; i++) 
-        {
-            if(i<10)
-            {
-                cboxSec.addItem("0"+i);
-            }
-            else
-            {
+        for (int i = 0; i <= 60; i++) {
+            if (i < 10) {
+                cboxSec.addItem("0" + i);
+            } else {
                 cboxSec.addItem(Integer.toString(i));
             }
         }
-        
+
     }
 
     /**
@@ -83,9 +107,15 @@ public class AppUI extends javax.swing.JFrame {
         btnRadioH = new javax.swing.JRadioButton();
         btnRadioL = new javax.swing.JRadioButton();
         btnRadioM = new javax.swing.JRadioButton();
+        btnHistory = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("RemindMe");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         btnStart.setBackground(new java.awt.Color(0, 153, 51));
         btnStart.setFont(new java.awt.Font("Tahoma", 2, 12)); // NOI18N
@@ -166,47 +196,42 @@ public class AppUI extends javax.swing.JFrame {
         btnRadioH.setText("HIGH");
 
         radioBtnGroup.add(btnRadioL);
+        btnRadioL.setSelected(true);
         btnRadioL.setText("LOW");
 
         radioBtnGroup.add(btnRadioM);
         btnRadioM.setText("MEDIUM");
+
+        btnHistory.setIcon(new javax.swing.ImageIcon(getClass().getResource("/UI/history.png"))); // NOI18N
+        btnHistory.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoryActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(15, 15, 15)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(88, 88, 88)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(lblMin)
-                            .addComponent(cboxMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(28, 28, 28)
-                        .addComponent(jLabel5)
-                        .addGap(37, 37, 37)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cboxSec, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lblSec)))
+                        .addComponent(lblPriority)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnRadioH)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnRadioM)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnRadioL))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(15, 15, 15)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lblPriority)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnRadioH)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnRadioM)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnRadioL))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnStart)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnReset)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btnStop, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(textMsg)
-                            .addComponent(textTask))))
+                        .addComponent(btnStart)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnReset)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnStop, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(textMsg)
+                    .addComponent(textTask))
                 .addGap(17, 17, 17))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -221,16 +246,32 @@ public class AppUI extends javax.swing.JFrame {
                 .addGap(131, 131, 131)
                 .addComponent(jLabel3)
                 .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(88, 88, 88)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblMin)
+                    .addComponent(cboxMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(28, 28, 28)
+                .addComponent(jLabel5)
+                .addGap(37, 37, 37)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cboxSec, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblSec))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnHistory, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblMin)
-                    .addComponent(jLabel5)
-                    .addComponent(lblSec))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lblMin)
+                        .addComponent(jLabel5)
+                        .addComponent(lblSec))
+                    .addComponent(btnHistory, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -262,61 +303,104 @@ public class AppUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
-            taskCompleteMsg = textMsg.getText();
-            timer = new Timer(1000, new ActionListener() {
+        taskCompleteMsg = textMsg.getText();
+        taskMsg = textTask.getText();
+        
+        String selectedPriority = GroupButtonUtils.getSelectedButtonText(radioBtnGroup).toLowerCase();
+        Integer priority = selectedPriority.equals("high") ? 1 : selectedPriority.equals("medium") ? 2 : 3;
+        
+        Task task = new Task(taskMsg, taskCompleteMsg, priority, min, sec);
+
+        timer = new Timer(1000, new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent ae) 
-            {
-               lblMin.setForeground(Color.BLACK);
-               lblSec.setForeground(Color.BLACK);
-               if(IsStopped){
-                   min = minTemp;
-                   sec = secTemp;
-                   IsStopped = false;
-               }
-               if(sec==0){
-                   sec=60;
-                   min--;
-               }
-               if(min==0){
-                   lblMin.setForeground(Color.RED);
-                   lblSec.setForeground(Color.RED);
-               }
-               if(min<0){
-                   JOptionPane.showMessageDialog(rootPane,"Task Completed!\n"+taskCompleteMsg);
-                   min=0;sec=0;
-                   timer.stop();
-                   btnResetActionPerformed(null);
-                 }
-               else{
-                   sec--;
-                   if(sec<10){
-                       lblSec.setText("0"+sec);
-                       flag=false;
-                   }
-                   if(min<10)
-                   {
-                       lblMin.setText("0"+min);
-                       if(sec<10)
-                       {
-                           lblSec.setText("0"+sec);
-                       }
-                       else
-                       {
-                           lblSec.setText(""+sec);
-                       }
-                       flag=false;
-                   } 
-               }
-               if(flag)
-               {
-                   lblMin.setText(""+min);
-                   lblMin.setText(""+sec);
-               }
+            public void actionPerformed(ActionEvent ae) {
+                lblMin.setForeground(Color.BLACK);
+                lblSec.setForeground(Color.BLACK);
+
+                if (IsStopped) {
+                    min = minTemp;
+                    sec = secTemp;
+                    IsStopped = false;
+                }
+
+                if (sec == 0) {
+                    sec = 60;
+                    min--;
+                }
+
+                if (min == 0) {
+                    lblMin.setForeground(Color.RED);
+                    lblSec.setForeground(Color.RED);
+                }
+
+                if (min < 0) {
+                    JOptionPane.showMessageDialog(rootPane, "Task Completed!\n" + taskCompleteMsg);
+                    min = 0;
+                    sec = 0;
+                    timer.stop();
+                    btnResetActionPerformed(null);
+                    
+                    task.setIsReminded(true);
+                    saveTasks();
+                } else {
+                    sec--;
+
+                    if (sec < 10) {
+                        lblSec.setText("0" + sec);
+                        flag = false;
+                    }
+                    if (min < 10) {
+                        lblMin.setText("0" + min);
+
+                        if (sec < 10) {
+                            lblSec.setText("0" + sec);
+                        } else {
+                            lblSec.setText("" + sec);
+                        }
+
+                        flag = false;
+                    }
+                }
+                if (flag) {
+                    lblMin.setText("" + min);
+                    lblMin.setText("" + sec);
+                }
             }
         });
+
+        model.add(task);
+        saveTasks();
+        
         timer.start();
     }//GEN-LAST:event_btnStartActionPerformed
+
+    private void saveTasks() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream("tasks.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(model);
+            out.close();
+            fileOut.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
+    }
+    
+    private void loadTasks() {        
+        try {
+            FileInputStream fileIn = new FileInputStream("tasks.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            model = (Model)in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+            return;
+        } catch (ClassNotFoundException c) {
+            c.printStackTrace();
+            return;
+        }
+    }
 
     private void textTaskActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textTaskActionPerformed
         // TODO add your handling code here:
@@ -330,12 +414,12 @@ public class AppUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnStopActionPerformed
 
     private void cboxSecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cboxSecActionPerformed
-        lblSec.setText(""+cboxSec.getSelectedItem());
+        lblSec.setText("" + cboxSec.getSelectedItem());
         sec = Integer.parseInt(lblSec.getText());
     }//GEN-LAST:event_cboxSecActionPerformed
 
     private void cboxMinActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cboxMinActionPerformed
-        lblMin.setText(""+cboxMin.getSelectedItem());
+        lblMin.setText("" + cboxMin.getSelectedItem());
         min = Integer.parseInt(lblMin.getText());
     }//GEN-LAST:event_cboxMinActionPerformed
 
@@ -344,10 +428,19 @@ public class AppUI extends javax.swing.JFrame {
         lblSec.setForeground(Color.BLACK);
         lblMin.setText("00");
         lblSec.setText("00");
-        min = 0; 
+        min = 0;
         sec = 0;
         timer.stop();
     }//GEN-LAST:event_btnResetActionPerformed
+
+    private void btnHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoryActionPerformed
+        HistoryForm historyForm = new HistoryForm(model);
+        historyForm.setVisible(true);
+    }//GEN-LAST:event_btnHistoryActionPerformed
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        loadTasks();
+    }//GEN-LAST:event_formWindowOpened
 
     /**
      * @param args the command line arguments
@@ -356,7 +449,7 @@ public class AppUI extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+        * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -375,6 +468,7 @@ public class AppUI extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(AppUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -385,6 +479,7 @@ public class AppUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnHistory;
     private javax.swing.JRadioButton btnRadioH;
     private javax.swing.JRadioButton btnRadioL;
     private javax.swing.JRadioButton btnRadioM;
